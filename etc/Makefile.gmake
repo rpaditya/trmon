@@ -1,0 +1,37 @@
+DOT=/usr/local/bin/dot
+TRDIR=${HOME}/trmon/data/tr/traceroute
+MAPSDIR=${HOME}/public_html/maps
+SUFFIX=umich.edu
+
+#
+# make event files for drraw from the RCS logs of traceroute log files
+#
+TRLIST := $(shell find ${HOME}/trmon/data/tr -iname '*.txt' )
+OBJS = $(TRLIST:%.txt=%.evt)
+mkevt: $(OBJS)
+
+%.evt: %.txt
+	@${HOME}/trmon/bin/rcs2evt.pl $^ > $@
+
+#
+# draw a Graphviz (dot) map of connections based on traceroutes
+# v4
+#
+mkmap:
+	${HOME}/public_html/drraw/trmap.pl ${TRDIR}/*.${SUFFIX}---*.txt > ${TRDIR}/tr.${SUFFIX}.dot
+	${DOT} -Tsvg ${TRDIR}/tr.${SUFFIX}.dot > ${MAPSDIR}/tr.${SUFFIX}.svg
+
+#
+# v6
+#
+mkmap6:
+	${HOME}/public_html/drraw/trmap.pl ${TRDIR}6/*.txt > ${TRDIR}6/tr6.dot
+	${DOT} -Tsvg ${TRDIR}6/tr6.dot > ${MAPSDIR}/tr6.svg
+
+#
+# example Graphviz "diff" of two versions of a traceroute
+#
+mkdiff:
+	${HOME}/public_html/drraw/trdiff.pl www.yahoo.com---mu.ilab.umnet.umich.edu-209.191.122.70.txt 1 2 > ${TRDIR}/trdiff.dot
+	${DOT} -Tsvg ${TRDIR}/trdiff.dot > ${MAPSDIR}/trdiff.svg
+
